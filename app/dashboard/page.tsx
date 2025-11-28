@@ -51,7 +51,12 @@ export default async function DashboardPage() {
       </div>
 
       {/* 2. Render AI Hub (Fixed Position handled in component) */}
-      <AIHub healthScore={healthScore} walletBalance={user.walletBalance} />
+      <AIHub 
+        healthScore={healthScore} 
+        walletBalance={user.walletBalance} 
+        taxBalance={user.taxBalance || 0} 
+        savingsHistory={history} 
+      />
     </div>
   );
 }

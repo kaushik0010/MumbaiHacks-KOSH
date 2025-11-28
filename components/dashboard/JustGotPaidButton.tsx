@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import confetti from "canvas-confetti";
 
 export default function JustGotPaidButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,6 +37,12 @@ export default function JustGotPaidButton() {
     try {
       const response = await axios.patch("/api/user/update", { walletTopUp: val });
       if (response.data.success) {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#2563eb', '#16a34a', '#fbbf24'] // Blue, Green, Gold
+        });
         toast.success("Income registered & wallet updated!");
         setAmount("");
         setIsOpen(false);

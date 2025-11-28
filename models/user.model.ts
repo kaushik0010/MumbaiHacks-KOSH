@@ -8,6 +8,7 @@ export interface User extends Document {
   email: string;
   password?: string;
   walletBalance: number;
+  taxBalance: number;
   isEmailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -35,6 +36,10 @@ const UserSchema: Schema<User> = new Schema(
     walletBalance: {
       type: Number,
       default: 0,
+    },
+    taxBalance: { 
+      type: Number, 
+      default: 0 
     },
     isEmailVerified: {
       type: Boolean,

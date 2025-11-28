@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     // 3. Generate Stream
     // Using gemini-1.5-flash as it is stable; use 2.5-flash if you have access
     const response = await ai.models.generateContentStream({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       config: {
         systemInstruction: {
           parts: [{ text: `You are KOSH, a financial coach. 

@@ -1,66 +1,100 @@
-import { getServerSession } from "next-auth";
-import { NextRequest, NextResponse } from "next/server";
-import { authOptions } from "@/lib/authOptions";
-import dbConnect from "@/lib/dbConnect";
-import UserModel from "@/models/user.model";
-import WalletTopUpModel from "@/models/walletTopUp.model";
-import { ApiResponse } from "@/types/apiResponse";
+import { GoogleGenAI } from "@google/genai";
+import { NextResponse } from "next/server";
 
-export async function PATCH(request: NextRequest) {
-  const session = await getServerSession(authOptions);
+// Initialize the new client
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY });
 
-  if (!session || !session.user) {
-    return NextResponse.json<ApiResponse>(
-      { success: false, message: "Unauthorized" },
-      { status: 401 }
-    );
-  }
-
-  await dbConnect();
-
+export async function POST(req: Request) {
   try {
-    const { name, walletTopUp } = await request.json();
-    const user = await UserModel.findOne({ email: session.user.email });
+    const { history, message, image, data } = await req.json();
 
-    if (!user) {
-      return NextResponse.json<ApiResponse>(
-        { success: false, message: "User not found" },
-        { status: 404 }
-      );
+    // 1. Extract Contextual Data
+    const healthScore = data?.healthScore ?? "unknown";
+    const walletBalance = data?.walletBalance ?? "unknown";
+    const taxBalance = data?.taxBalance ?? 0;
+    const savingsHistory = data?.savingsHistory || [];
+
+    // 2. Format "Memory" (Past Achievements)
+    const pastAchievements = savingsHistory.length > 0 
+      ? savingsHistory.map((s: any) => `- Successfully saved $${s.amountSaved} for '${s.campaignName}'`).join("\n")
+      : "No completed savings plans yet (New user).";
+
+    // 3. Prepare Content for the specific turn
+    const currentParts: any[] = [{ text: message }];
+
+    if (image) {
+        // Handle Base64 Image
+        const [mimeMeta, base64Data] = image.split(",");
+        const mimeType = mimeMeta.split(":")[1].split(";")[0];
+        
+        currentParts.push({
+            inlineData: {
+                data: base64Data,
+                mimeType: mimeType
+            }
+        });
     }
 
-    // Update Name
-    if (name) {
-      user.name = name;
-    }
+    // 4. Construct Chat History
+    const contents = history.map((msg: any) => ({
+        role: msg.role === "user" ? "user" : "model",
+        parts: [{ text: msg.content }]
+    }));
 
-    // Process Wallet Top Up
-    if (walletTopUp && typeof walletTopUp === "number" && walletTopUp > 0) {
-      user.walletBalance += walletTopUp;
+    // Add current message
+    contents.push({
+        role: "user",
+        parts: currentParts
+    });
 
-      // Create Record
-      await WalletTopUpModel.create({
-        userId: user._id,
-        amount: walletTopUp,
-        status: "success",
-      });
-    }
+    // 5. Generate Stream with Enhanced System Prompt
+    const response = await ai.models.generateContentStream({
+      model: "gemini-2.5-flash",
+      config: {
+        systemInstruction: {
+          parts: [{ text: `You are KOSH, an intelligent financial coach for gig workers.
 
-    await user.save();
+            USER FINANCIAL PROFILE:
+            - Financial Health Score: ${healthScore}/100
+            - Available Wallet Balance: $${walletBalance}
+            - Tax Vault (Locked by Agent): $${taxBalance}
 
-    return NextResponse.json<ApiResponse>(
-      { 
-        success: true, 
-        message: "Profile updated successfully", 
-        data: { name: user.name, walletBalance: user.walletBalance } 
+            CONTEXTUAL MEMORY (PAST SUCCESS):
+            ${pastAchievements}
+
+            YOUR BEHAVIORAL GUIDELINES:
+            1. **The Tax Agent:** If the user asks about money/income, remind them that the "Tax Trap Agent" has automatically secured 15% ($${taxBalance}) of their income into the Vault. Reinforce that this is for their safety.
+            2. **Motivation:** Use their 'Contextual Memory' (past savings) to encourage them. Example: "You crushed your '${savingsHistory[0]?.campaignName || 'goal'}' before, you can do this too!"
+            3. **Receipt Analysis:** If an image is uploaded, categorize items as 'Needs' vs 'Wants'.
+            4. **Concise:** Keep responses punchy (max 3-4 sentences). Be high-energy and supportive.` }]
+        },
       },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Update error:", error);
-    return NextResponse.json<ApiResponse>(
-      { success: false, message: "Error updating profile" },
-      { status: 500 }
-    );
+      contents: contents,
+    });
+
+    // 6. Create Readable Stream
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        try {
+          for await (const chunk of response) {
+            const text = chunk.text; 
+            if (text) {
+              controller.enqueue(encoder.encode(text));
+            }
+          }
+          controller.close();
+        } catch (err) {
+          console.error("Stream processing error:", err);
+          controller.error(err);
+        }
+      },
+    });
+
+    return new NextResponse(stream);
+
+  } catch (error: any) {
+    console.error("AI Generation Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -30,6 +30,7 @@ import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { savingSchema, SavingInput } from "@/schemas/savingSchema";
+import confetti from "canvas-confetti";
 
 export default function StartSavingPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -67,6 +68,11 @@ export default function StartSavingPage() {
     try {
       const response = await axios.post("/api/savings/create", data);
       if (response.data.success) {
+        confetti({
+          particleCount: 150,
+          spread: 100,
+          origin: { y: 0.6 }
+        });
         toast.success(response.data.message);
         router.replace("/dashboard");
         router.refresh();

@@ -40,7 +40,7 @@ export async function getDashboardData() {
   const userId = session.user._id;
 
   const [user, activePlan, history, topups, totalTopUps] = await Promise.all([
-    UserModel.findById(userId).select("name email walletBalance").lean(),
+    UserModel.findById(userId).select("name email walletBalance taxBalance").lean(),
     SavingModel.findOne({ userId, isActive: true }).lean(),
     SavingModel.find({ userId, isActive: false }).sort({ endDate: -1 }).lean(),
     WalletTopUpModel.find({ userId }).sort({ createdAt: -1 }).limit(5).lean(),
