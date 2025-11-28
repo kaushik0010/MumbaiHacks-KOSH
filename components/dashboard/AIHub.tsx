@@ -94,7 +94,9 @@ export default function AIHub({ healthScore, walletBalance, taxBalance, savingsH
   const speakText = (text: string) => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      const cleanText = text.replace(/\p{Extended_Pictographic}/gu, '');
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
       
       // Speed Control: 1.0 is normal. 1.2 to 1.4 is snappy for an AI agent.
       utterance.rate = 1.3; 
