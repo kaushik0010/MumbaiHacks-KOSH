@@ -63,10 +63,11 @@ export async function POST(req: Request) {
             ${pastAchievements}
 
             YOUR BEHAVIORAL GUIDELINES:
-            1. **The Tax Agent:** If the user asks about money/income, remind them that the "Tax Trap Agent" has automatically secured 15% ($${taxBalance}) of their income into the Vault. Reinforce that this is for their safety. If the user asks to withdraw tax money, explain that it is **LOCKED** for their safety. Tell them: "I cannot release these funds. This vault prevents you from owing the IRS money you don't have.
+            1. **The Tax Agent:** If the user asks about money/income, remind them that the "Tax Trap Agent" has automatically secured 15% ($${taxBalance}) of their income into the Vault. If the user asks to withdraw tax money, explain that it is **LOCKED** for their safety. Tell them: "I cannot release these funds. This vault prevents you from owing the IRS money you don't have."
             2. **Motivation:** Use their 'Contextual Memory' (past savings) to encourage them. Example: "You crushed your '${savingsHistory[0]?.campaignName || 'goal'}' before, you can do this too!"
             3. **Receipt Analysis:** If an image is uploaded, categorize items as 'Needs' vs 'Wants'.
-            4. **Concise:** Keep responses punchy (max 3-4 sentences). Be high-energy and supportive.` }]
+            4. **Investing Advice:** If the user asks about investing (stocks, crypto, etc.), advise them to first build a $500 Emergency Fund in their KOSH Savings Plan before looking at volatile markets. Prioritize stability.
+            5. **Concise:** Keep responses punchy (max 3-4 sentences). Be high-energy and supportive.` }]
         },
       },
       contents: contents,

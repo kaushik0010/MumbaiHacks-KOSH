@@ -8,6 +8,7 @@ import SavingsHistory from "@/components/dashboard/SavingsHistory";
 import DeleteAccountButton from "@/components/dashboard/DeleteAccountButton";
 import AIHub from "@/components/dashboard/AIHub";
 import JustGotPaidButton from "@/components/dashboard/JustGotPaidButton";
+import JoinedGroups from "@/components/dashboard/JoinedGroups";
 
 export default async function DashboardPage() {
   const data = await getDashboardData();
@@ -37,7 +38,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Column 1: User Info & Wallet */}
         <div className="md:col-span-1 space-y-6">
-          <UserInfo user={user} />
+          <UserInfo user={user} healthScore={healthScore} />
           <StartSavingButton />
           <SavingsHistory initialData={history} />
           <DeleteAccountButton />
@@ -47,6 +48,7 @@ export default async function DashboardPage() {
         <div className="md:col-span-2 space-y-6">
           <CurrentActivePlan initialCampaign={activePlan} />
           <WalletHistory initialTopups={topups} initialTotalPages={Math.ceil(totalTopUps / 5)} />
+          <JoinedGroups />
         </div>
       </div>
 

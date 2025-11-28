@@ -5,8 +5,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import { toast } from "sonner";
-import { Loader2, DollarSign } from "lucide-react";
+import { Loader2, DollarSign, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link"; // Import Link
 
 import {
   Form,
@@ -26,6 +27,7 @@ import { ApiResponse } from "@/types/apiResponse";
 export default function UpdateProfileForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<{ name: string; email: string; walletBalance: number } | null>(null);
+  const [showDashboardLink, setShowDashboardLink] = useState(false); // New State
   const router = useRouter();
 
   const form = useForm<UpdateProfileInput>({
@@ -55,19 +57,19 @@ export default function UpdateProfileForm() {
 
   const onSubmit = async (data: UpdateProfileInput) => {
     setIsLoading(true);
+    setShowDashboardLink(false); // Reset in case they submit again
     try {
       const response = await axios.patch<ApiResponse>("/api/user/update", data);
       if (response.data.success) {
         toast.success(response.data.message);
         
-        // Update local state with new data
         if (response.data.data) {
              setUserData(prev => prev ? { ...prev, ...response.data.data } : null);
         }
         
-        // Reset wallet top up to 0, keep name
         form.reset({ name: data.name, walletTopUp: 0 });
         router.refresh();
+        setShowDashboardLink(true); // Show button on success
       }
     } catch (error) {
       toast.error("Failed to update profile");
@@ -123,7 +125,13 @@ export default function UpdateProfileForm() {
                   <FormControl>
                     <div className="relative">
                         <DollarSign className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input type="number" className="pl-8" {...field} />
+                        <Input 
+                          type="number" 
+                          className="pl-8" 
+                          placeholder="0"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value)}
+                        />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -141,6 +149,21 @@ export default function UpdateProfileForm() {
                 "Save Changes"
               )}
             </Button>
+
+            {/* Conditionally Rendered Dashboard Button */}
+            {showDashboardLink && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="w-full border-green-200 text-green-700 hover:text-green-800 hover:bg-green-50" 
+                asChild
+              >
+                <Link href="/dashboard">
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  Go to Dashboard
+                </Link>
+              </Button>
+            )}
           </form>
         </Form>
       </CardContent>

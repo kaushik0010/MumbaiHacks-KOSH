@@ -213,7 +213,7 @@ export default function AIHub({ healthScore, walletBalance, taxBalance, savingsH
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <div className="fixed bottom-6 right-6 z-50 cursor-pointer group">
-          <Button className="h-14 w-14 rounded-full shadow-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all group-hover:scale-105">
+          <Button className="h-14 w-14 rounded-full shadow-xl bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all group-hover:scale-105">
             <Bot className="h-8 w-8 text-white" />
           </Button>
           {actions.length > 0 && (
