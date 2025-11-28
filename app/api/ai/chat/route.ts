@@ -8,17 +8,22 @@ export async function POST(req: Request) {
   try {
     const { history, message, image, data } = await req.json();
 
+    // 1. Extract Contextual Data
     const healthScore = data?.healthScore ?? "unknown";
     const walletBalance = data?.walletBalance ?? "unknown";
+    const taxBalance = data?.taxBalance ?? 0;
+    const savingsHistory = data?.savingsHistory || [];
 
-    // 1. Prepare Content for the specific turn
-    // The new SDK uses a simpler structure for parts
+    // 2. Format "Memory" (Past Achievements)
+    const pastAchievements = savingsHistory.length > 0 
+      ? savingsHistory.map((s: any) => `- Successfully saved $${s.amountSaved} for '${s.campaignName}'`).join("\n")
+      : "No completed savings plans yet (New user).";
+
+    // 3. Prepare Content for the specific turn
     const currentParts: any[] = [{ text: message }];
 
     if (image) {
-        // image format: "data:image/jpeg;base64,..."
-        // The new SDK often prefers simple Base64 strings or URIs. 
-        // For raw base64, we can structure it like this:
+        // Handle Base64 Image
         const [mimeMeta, base64Data] = image.split(",");
         const mimeType = mimeMeta.split(":")[1].split(";")[0];
         
@@ -30,42 +35,50 @@ export async function POST(req: Request) {
         });
     }
 
-    // 2. Construct History for Context
-    // We map your frontend history to the SDK's expected format
+    // 4. Construct Chat History
     const contents = history.map((msg: any) => ({
         role: msg.role === "user" ? "user" : "model",
         parts: [{ text: msg.content }]
     }));
 
-    // Add the current user message to the end of contents
+    // Add current message
     contents.push({
         role: "user",
         parts: currentParts
     });
 
-    // 3. Generate Stream
-    // Using gemini-1.5-flash as it is stable; use 2.5-flash if you have access
+    // 5. Generate Stream with Enhanced System Prompt
     const response = await ai.models.generateContentStream({
       model: "gemini-2.5-flash",
       config: {
         systemInstruction: {
-          parts: [{ text: `You are KOSH, a financial coach. 
-            User Stats: Health Score ${healthScore}, Balance $${walletBalance}.
-            - Be concise (max 3 sentences).
-            - Be encouraging.
-            - If an image is provided, analyze the receipt/bill details.` }]
+          parts: [{ text: `You are KOSH, an intelligent financial coach for gig workers.
+
+            USER FINANCIAL PROFILE:
+            - Financial Health Score: ${healthScore}/100
+            - Available Wallet Balance: $${walletBalance}
+            - Tax Vault (Locked by Agent): $${taxBalance}
+
+            CONTEXTUAL MEMORY (PAST SUCCESS):
+            ${pastAchievements}
+
+            YOUR BEHAVIORAL GUIDELINES:
+            1. **The Tax Agent:** If the user asks about money/income, remind them that the "Tax Trap Agent" has automatically secured 15% ($${taxBalance}) of their income into the Vault. Reinforce that this is for their safety. If the user asks to withdraw tax money, explain that it is **LOCKED** for their safety. Tell them: "I cannot release these funds. This vault prevents you from owing the IRS money you don't have.
+            2. **Motivation:** Use their 'Contextual Memory' (past savings) to encourage them. Example: "You crushed your '${savingsHistory[0]?.campaignName || 'goal'}' before, you can do this too!"
+            3. **Receipt Analysis:** If an image is uploaded, categorize items as 'Needs' vs 'Wants'.
+            4. **Concise:** Keep responses punchy (max 3-4 sentences). Be high-energy and supportive.` }]
         },
       },
       contents: contents,
     });
 
-    // 4. Create a ReadableStream
+    // 6. Create Readable Stream
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
         try {
           for await (const chunk of response) {
-            const text = chunk.text; // Access text property directly in new SDK
+            const text = chunk.text; 
             if (text) {
               controller.enqueue(encoder.encode(text));
             }
