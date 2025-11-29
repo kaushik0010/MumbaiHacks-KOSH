@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function ProfilePage() {
   return (
     <div className="min-h-[80vh] bg-linear-to-br from-blue-50/30 to-slate-50/50 py-8">
-      <div className="container max-w-6xl mx-auto px-4">
+      <div className="container max-w-4xl mx-auto px-4">
         <div className="flex flex-col gap-2 mb-8">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
             Account Settings
