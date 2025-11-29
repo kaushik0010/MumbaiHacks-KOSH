@@ -11,7 +11,7 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "KOSH-Lite | Save Smarter",
+  title: "KOSH | Save Smarter",
   description: "Your hub for smart savings — build goals, track progress, and grow.",
 };
 
