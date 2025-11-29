@@ -4,16 +4,15 @@ import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2, CreditCard, Wallet } from "lucide-react";
+import { Loader2, CreditCard, Wallet, Target, Calendar, TrendingUp } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { DataTable } from "./wallet/DataTable"; // Reusing generic table
-import { activePlanColumns, ActiveSaving } from "./ActivePlanColumns";
+import { Badge } from "@/components/ui/badge";
 
 interface CurrentActivePlanProps {
-  initialCampaign: ActiveSaving | null;
+  initialCampaign: any | null;
 }
 
 export default function CurrentActivePlan({ initialCampaign }: CurrentActivePlanProps) {
@@ -22,15 +21,18 @@ export default function CurrentActivePlan({ initialCampaign }: CurrentActivePlan
 
   if (!initialCampaign) {
     return (
-      <Card className="h-full flex items-center justify-center min-h-[200px]">
-        <CardContent className="text-muted-foreground">
-          No active saving plans.
+      <Card className="border-2 bg-white/80 backdrop-blur-sm shadow-lg h-full flex items-center justify-center min-h-[200px]">
+        <CardContent className="text-center space-y-3">
+          <Target className="h-12 w-12 text-muted-foreground mx-auto opacity-50" />
+          <div>
+            <p className="font-semibold text-muted-foreground">No Active Plans</p>
+            <p className="text-sm text-muted-foreground mt-1">Start your first savings journey</p>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
-  // Calculate progress percentage
   const progress = Math.min(
     (initialCampaign.amountSaved / initialCampaign.totalAmount) * 100,
     100
@@ -43,11 +45,15 @@ export default function CurrentActivePlan({ initialCampaign }: CurrentActivePlan
         amountPaid: initialCampaign.amountPerContribution
       });
       if (response.data.success) {
-        toast.success("Contribution paid successfully!");
+        toast.success("Contribution Successful!", {
+          description: `$${initialCampaign.amountPerContribution} added to your savings`,
+        });
         router.refresh();
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Contribution failed");
+      toast.error("Payment Failed", {
+        description: error.response?.data?.message || "Unable to process contribution",
+      });
     } finally {
       setLoading(false);
     }
@@ -58,63 +64,107 @@ export default function CurrentActivePlan({ initialCampaign }: CurrentActivePlan
     try {
       const response = await axios.patch(`/api/savings/${initialCampaign._id}/payout`);
       if (response.data.success) {
-        toast.success("Funds transferred to wallet!");
+        toast.success("Savings Collected!", {
+          description: "Funds transferred to your wallet",
+        });
         router.refresh();
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Payout failed");
+      toast.error("Payout Failed", {
+        description: error.response?.data?.message || "Unable to process payout",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // Check if plan is completed (locally for UI logic)
   const isCompleted = initialCampaign.amountSaved >= initialCampaign.totalAmount;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Active Plan: {initialCampaign.campaignName}</CardTitle>
-        <CardDescription>Track your progress and manage contributions</CardDescription>
+    <Card className="border-2 bg-white/80 backdrop-blur-sm shadow-lg">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <Target className="h-5 w-5 text-blue-500" />
+              Active Savings Plan
+            </CardTitle>
+            <CardDescription className="mt-1">
+              {initialCampaign.campaignName}
+            </CardDescription>
+          </div>
+          <Badge variant={isCompleted ? "default" : "secondary"} className="capitalize">
+            {isCompleted ? "Completed" : initialCampaign.frequency}
+          </Badge>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        
         {/* Progress Section */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm font-medium">
-            <span>Progress</span>
-            <span>{progress.toFixed(0)}%</span>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium text-gray-700">Progress</span>
+            <span className="text-sm font-bold text-blue-600">{progress.toFixed(0)}%</span>
           </div>
           <Progress value={progress} className="h-3" />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>${initialCampaign.amountSaved} Saved</span>
-            <span>Goal: ${initialCampaign.totalAmount}</span>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">${initialCampaign.amountSaved} saved</span>
+            <span className="font-semibold text-gray-900">Goal: ${initialCampaign.totalAmount}</span>
           </div>
         </div>
 
-        {/* Data Table */}
-        <DataTable columns={activePlanColumns} data={[initialCampaign]} />
+        {/* Plan Details Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div className="flex items-center gap-2 mb-1">
+              <Calendar className="h-4 w-4 text-blue-500" />
+              <span className="text-xs font-medium text-muted-foreground">Next Due</span>
+            </div>
+            <p className="text-sm font-semibold text-gray-900">
+              {new Date(initialCampaign.nextDueDate).toLocaleDateString()}
+            </p>
+          </div>
+          
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="h-4 w-4 text-green-500" />
+              <span className="text-xs font-medium text-muted-foreground">Per Payment</span>
+            </div>
+            <p className="text-sm font-semibold text-green-600">
+              ${initialCampaign.amountPerContribution}
+            </p>
+          </div>
+        </div>
 
-        {/* Actions */}
-        <div className="flex gap-4 pt-4">
-            {!isCompleted ? (
-                <Button 
-                    onClick={handlePay} 
-                    disabled={loading} 
-                    className="w-full md:w-auto gap-2"
-                >
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-                    Pay Contribution (${initialCampaign.amountPerContribution})
-                </Button>
-            ) : (
-                <Button 
-                    onClick={handlePayout} 
-                    disabled={loading} 
-                    className="w-full md:w-auto gap-2 bg-green-600 hover:bg-green-700 text-white"
-                >
-                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
-                    Collect Savings
-                </Button>
-            )}
+        {/* Action Button */}
+        <div className="pt-4">
+          {!isCompleted ? (
+            <Button 
+              onClick={handlePay} 
+              disabled={loading} 
+              className="w-full gap-2 bg-blue-600 hover:bg-blue-700 h-11 text-base cursor-pointer"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CreditCard className="h-4 w-4" />
+              )}
+              Pay ${initialCampaign.amountPerContribution} Now
+            </Button>
+          ) : (
+            <Button 
+              onClick={handlePayout} 
+              disabled={loading} 
+              className="w-full gap-2 bg-green-600 hover:bg-green-700 h-11 text-base cursor-pointer"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Wallet className="h-4 w-4" />
+              )}
+              Collect ${initialCampaign.amountSaved} Savings
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

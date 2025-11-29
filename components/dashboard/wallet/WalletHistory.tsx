@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "./DataTable";
 import { walletTopUpColumns, WalletTopUp } from "./columns";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, History } from "lucide-react";
 
 interface WalletHistoryProps {
   initialTopups: WalletTopUp[];
@@ -19,7 +19,6 @@ export default function WalletHistory({ initialTopups, initialTotalPages }: Wall
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [loading, setLoading] = useState(false);
   
-  // Prevent initial fetch since we have server data
   const isInitialRender = useRef(true);
 
   useEffect(() => {
@@ -47,35 +46,51 @@ export default function WalletHistory({ initialTopups, initialTotalPages }: Wall
   }, [currentPage]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Wallet Transaction History</CardTitle>
+    <Card className="border-2 bg-white/80 backdrop-blur-sm shadow-lg">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <History className="h-5 w-5 text-blue-500" />
+          Transaction History
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="mb-4">
-            <DataTable columns={walletTopUpColumns} data={topups} />
+      <CardContent className="space-y-4">
+        <div className="border rounded-lg">
+          <DataTable columns={walletTopUpColumns} data={topups} />
         </div>
         
-        <div className="flex items-center justify-end space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1 || loading}
-          >
-            Previous
-          </Button>
-          <span className="text-sm text-muted-foreground">
-             Page {currentPage} of {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages || loading}
-          >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Next"}
-          </Button>
+        {/* Pagination */}
+        <div className="flex items-center justify-between pt-4 border-t">
+          <div className="text-sm text-muted-foreground">
+            Showing {topups.length} transactions
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1 || loading}
+              className="gap-1 border-2 cursor-pointer"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            
+            <span className="text-sm font-medium text-gray-700 min-w-20 text-center">
+              Page {currentPage} of {totalPages}
+            </span>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages || loading}
+              className="gap-1 border-2 cursor-pointer"
+            >
+              Next
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

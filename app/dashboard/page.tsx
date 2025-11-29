@@ -26,39 +26,54 @@ export default async function DashboardPage() {
   const healthScore = data.healthScore;
 
   return (
-    <div className="container mx-auto p-6 space-y-6 relative min-h-screen pb-24">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <div className="w-full md:w-auto">
-             {/* 1. Render Income Button */}
-             <JustGotPaidButton />
+    <div className="min-h-screen bg-linear-to-br from-blue-50/30 to-slate-50/50 py-8">
+      <div className="container max-w-7xl mx-auto px-4 space-y-8">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+              Dashboard
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Welcome back, {user.name}! Here's your financial overview.
+            </p>
+          </div>
+          <div className="w-full md:w-auto">
+            <JustGotPaidButton />
+          </div>
         </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Column 1: User Info & Wallet */}
-        <div className="md:col-span-1 space-y-6">
-          <UserInfo user={user} healthScore={healthScore} />
-          <StartSavingButton />
-          <SavingsHistory initialData={history} />
-          <DeleteAccountButton />
+        
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Left Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            <UserInfo user={user} healthScore={healthScore} />
+            <StartSavingButton />
+            <DeleteAccountButton />
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <CurrentActivePlan initialCampaign={activePlan} />
+              <SavingsHistory initialData={history} />
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              <WalletHistory initialTopups={topups} initialTotalPages={Math.ceil(totalTopUps / 5)} />
+              <JoinedGroups />
+            </div>
+          </div>
         </div>
 
-        {/* Column 2 & 3: Main Content */}
-        <div className="md:col-span-2 space-y-6">
-          <CurrentActivePlan initialCampaign={activePlan} />
-          <WalletHistory initialTopups={topups} initialTotalPages={Math.ceil(totalTopUps / 5)} />
-          <JoinedGroups />
-        </div>
+        {/* AI Hub */}
+        <AIHub 
+          healthScore={healthScore} 
+          walletBalance={user.walletBalance} 
+          taxBalance={user.taxBalance || 0} 
+          savingsHistory={history} 
+        />
       </div>
-
-      {/* 2. Render AI Hub (Fixed Position handled in component) */}
-      <AIHub 
-        healthScore={healthScore} 
-        walletBalance={user.walletBalance} 
-        taxBalance={user.taxBalance || 0} 
-        savingsHistory={history} 
-      />
     </div>
   );
 }

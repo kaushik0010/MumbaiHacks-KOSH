@@ -2,16 +2,21 @@ import { Metadata } from "next";
 import UpdateProfileForm from "@/components/dashboard/UpdateProfileForm";
 
 export const metadata: Metadata = {
-  title: "KOSH | Update Profile",
+  title: "KOSH | Profile Settings",
+  description: "Manage your KOSH account settings, update your profile, and manage your wallet balance.",
 };
 
 export default function ProfilePage() {
   return (
-    <div className="container mx-auto px-4 py-10">
-      <div className="flex flex-col gap-6">
-        <div className="text-center md:text-left">
-            <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-            <p className="text-muted-foreground">Manage your account settings and wallet preferences.</p>
+    <div className="min-h-[80vh] bg-linear-to-br from-blue-50/30 to-slate-50/50 py-8">
+      <div className="container max-w-6xl mx-auto px-4">
+        <div className="flex flex-col gap-2 mb-8">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+            Account Settings
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl">
+            Manage your account settings, update your profile, and manage your wallet balance.
+          </p>
         </div>
         <UpdateProfileForm />
       </div>

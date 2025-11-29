@@ -4,7 +4,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Banknote, Loader2 } from "lucide-react";
+import { Banknote, Loader2, Sparkles, DollarSign } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -41,15 +41,19 @@ export default function JustGotPaidButton() {
           particleCount: 100,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ['#2563eb', '#16a34a', '#fbbf24'] // Blue, Green, Gold
+          colors: ['#2563eb', '#16a34a', '#fbbf24']
         });
-        toast.success("Income registered & wallet updated!");
+        toast.success("Income Registered!", {
+          description: `$${val.toFixed(2)} added to your wallet successfully`,
+        });
         setAmount("");
         setIsOpen(false);
         router.refresh();
       }
     } catch (error) {
-      toast.error("Failed to update wallet");
+      toast.error("Update Failed", {
+        description: "Failed to update wallet balance",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -58,36 +62,69 @@ export default function JustGotPaidButton() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full bg-green-600 hover:bg-green-700 text-white gap-2 h-12 text-lg shadow-md transition-all hover:-translate-y-0.5">
-          <Banknote className="h-6 w-6" />
+        <Button className="w-full bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white gap-3 h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 cursor-pointer">
+          <Banknote className="h-5 w-5" />
           Just Got Paid?
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] border-2">
         <DialogHeader>
-          <DialogTitle>Register New Income</DialogTitle>
-          <DialogDescription>
-            Great job! Enter the amount you received to top up your wallet instantly.
+          <DialogTitle className="flex items-center gap-2 text-xl">
+            <Sparkles className="h-5 w-5 text-green-600" />
+            Register New Income
+          </DialogTitle>
+          <DialogDescription className="text-base">
+            Great job! Enter the amount you received to instantly top up your wallet.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="amount" className="text-right">
-              Amount
+        
+        <div className="grid gap-6 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="amount" className="text-sm font-medium">
+              Amount Received
             </Label>
-            <Input
-              id="amount"
-              type="number"
-              placeholder="e.g. 150"
-              className="col-span-3"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
+            <div className="relative">
+              <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="amount"
+                type="number"
+                placeholder="0.00"
+                className="pl-10 h-11 text-lg font-medium focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          {/* Quick Amount Buttons */}
+          <div className="grid grid-cols-3 gap-2">
+            {[100, 250, 500].map((quickAmount) => (
+              <Button
+                key={quickAmount}
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setAmount(quickAmount.toString())}
+                className="border-2 hover:border-green-500 hover:text-green-600 cursor-pointer"
+              >
+                ${quickAmount}
+              </Button>
+            ))}
           </div>
         </div>
+        
         <DialogFooter>
-          <Button onClick={handleConfirm} disabled={isLoading} className="bg-green-600 hover:bg-green-700">
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Confirm & Allocate"}
+          <Button 
+            onClick={handleConfirm} 
+            disabled={isLoading} 
+            className="w-full bg-green-600 hover:bg-green-700 h-11 text-base gap-2 cursor-pointer"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Banknote className="h-4 w-4" />
+            )}
+            Confirm & Add to Wallet
           </Button>
         </DialogFooter>
       </DialogContent>
