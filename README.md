@@ -139,6 +139,8 @@ Open http://localhost:3000 with your browser.
 
 - **Tax Context:** The Tax Vault unlocks in April, coinciding with the start of the Assessment Year in the Indian Financial System. 
 
+- **Media upload:** Use media provided in test-assets.
+
 ---
 
 Made with ❤️ and ☕ for the Hackathon.
